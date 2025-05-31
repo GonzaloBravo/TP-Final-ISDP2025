@@ -1,0 +1,147 @@
+@startuml
+
+' Estilos generales
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam backgroundColor #fefefe
+skinparam classBackgroundColor #ffffff
+skinparam classBorderColor #333333
+skinparam classArrowColor #555555
+skinparam ArrowColor #888888
+
+package "Centro_Comercial" {
+
+  class CentroComercial {
+      - capacidadTotal : Semaphore
+      + estadisticas : Estadisticas
+      + tiendaRopa : TiendaRopa
+      + jugueteria : Jugueteria
+      + tiendaDeportiva : TiendaDeportiva
+      + tiendaElectronica : TiendaElectronica
+      + cine : Cine
+      + patioComidas : PatioComidas
+      + estacionamiento : Estacionamiento
+      <<create>> CentroComercial()
+      + ingresar(personaId: String) : void
+      + salir(personaId: String) : void
+  }
+
+  class Persona {
+      - nombre : String
+      - centroComercial : CentroComercial
+      - lugaresVisitados : Set<String>
+      + Persona(nombre : String, centroComercial : CentroComercial)
+      + run() : void
+      - elegirLugar(opciones : List<String>) : String
+      - visitar() : void
+      - random(min : int, max : int) : int
+  }
+
+  class Vehiculo {
+      - id : String
+      - estacionamiento : Estacionamiento
+      - estadisticas : Estadisticas
+      <<create>> Vehiculo(id : String, estacionamiento : Estacionamiento, estadisticas : Estadisticas)
+      + run() : void
+  }
+
+  class Estadisticas {
+      - visitasPorLocal : ConcurrentHashMap<String, AtomicInteger>
+      - totalVisitas : AtomicInteger
+      - autosEstacionados : AtomicInteger
+      <<create>> Estadisticas()
+      + registrarVisita(local: String) : void
+      + registrarAuto() : void
+      + imprimirEstadisticas() : void
+      + obtenerInforme() : String
+  }
+
+  class PatioComidas {
+      - mesas : Semaphore
+      - personasComiendo : int
+      <<create>> PatioComidas(capacidad: int)
+      + ingresar(personaId: String) : void
+      + salir(personaId: String) : void
+  }
+
+  class Estacionamiento {
+      - lugares : Semaphore
+      - autosEstacionados : int
+      <<create>> Estacionamiento(capacidad: int)
+      + ingresar(vehiculoId: String) : void
+      + salir(vehiculoId: String) : void
+  }
+
+  class Cine {
+      - capacidad : int
+      - espectadoresEnSala : int
+      - peliculaEnCurso : boolean
+      - lock : Lock
+      - salaLlena : Condition
+      - finPelicula : Condition
+      - acomodador : AcomodadorCine
+      <<create>> Cine(capacidad: int)
+      + entrarSala(personaId: String) : void
+      + verPelicula(personaId: String) : void
+      + iniciarPelicula() : void
+  }
+
+  class AcomodadorCine {
+      - cine : Cine
+      <<create>> AcomodadorCine(cine: Cine)
+      + run() : void
+  }
+}
+
+package "Centro_Comercial.Comercios" {
+
+  abstract class Comercio {
+      # nombre : String
+      # capacidad : Semaphore
+      <<create>> Comercio(nombre : String, capacidadMaxima : int)
+      + entrar(personaId: String) : void
+      + salir(personaId: String) : void
+      + getNombre() : String
+  }
+
+  class Jugueteria {
+      <<create>> Jugueteria(capacidad: int)
+  }
+
+  class TiendaDeportiva {
+      <<create>> TiendaDeportiva(capacidad: int)
+  }
+
+  class TiendaElectronica {
+      <<create>> TiendaElectronica(capacidad: int)
+  }
+
+  class TiendaRopa {
+      <<create>> TiendaRopa(capacidad: int)
+  }
+
+  Jugueteria -|> Comercio : hereda
+  TiendaDeportiva -|> Comercio : hereda
+  TiendaElectronica -|> Comercio : hereda
+  TiendaRopa -|> Comercio : hereda
+}
+
+' Relaciones de composición
+CentroComercial *-- Estadisticas : +estadisticas
+CentroComercial *-- TiendaRopa : +tiendaRopa
+CentroComercial *-- Jugueteria : +jugueteria
+CentroComercial *-- TiendaDeportiva : +tiendaDeportiva
+CentroComercial *-- TiendaElectronica : +tiendaElectronica
+CentroComercial *-- Cine : +cine
+CentroComercial *-- PatioComidas : +patioComidas
+CentroComercial *-- Estacionamiento : +estacionamiento
+
+' Relaciones de asociación
+Persona --> CentroComercial : +centroComercial
+Vehiculo --> Estacionamiento : +estacionamiento
+Vehiculo --> Estadisticas : +estadisticas
+Cine --> AcomodadorCine : +acomodador
+AcomodadorCine --> Cine : +cine
+
+
+@enduml
